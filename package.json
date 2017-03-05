@@ -1,0 +1,32 @@
+{
+  "name": "phaser-game",
+  "version": "1.0.0",
+  "description": "Made with Phaser following this tutorial: https://mozdevs.github.io/html5-games-workshop/",
+  "main": "index.js",
+  "scripts": {
+    "dev": "gulp run",
+    "build": "gulp dist",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nuria-fl/phaser-game.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/nuria-fl/phaser-game/issues"
+  },
+  "homepage": "https://github.com/nuria-fl/phaser-game#readme",
+  "dependencies": {
+    "browserify": "*",
+    "browser-sync": "*",
+    "gulp": "*",
+    "gulp-connect": "*",
+    "gulp-util": "*",
+    "merge-stream": "*",
+    "phaser": "*",
+    "vinyl-source-stream": "*",
+    "watchify": "*"
+  }
+}
