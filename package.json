@@ -19,13 +19,17 @@
   },
   "homepage": "https://github.com/nuria-fl/phaser-game#readme",
   "dependencies": {
-    "browserify": "*",
+    "phaser": "*"
+  },
+  "devDependencies": {
+    "babelify": "^7.3.0",
     "browser-sync": "*",
+    "browserify": "*",
     "gulp": "*",
     "gulp-connect": "*",
     "gulp-util": "*",
     "merge-stream": "*",
-    "phaser": "*",
+    "babel-preset-es2015": "^6.22.0",
     "vinyl-source-stream": "*",
     "watchify": "*"
   }

@@ -5,6 +5,7 @@ const gutil = require('gulp-util');
 
 const browserify = require('browserify');
 const watchify = require('watchify');
+const babelify = require("babelify");
 const source = require('vinyl-source-stream');
 
 const browserSync = require('browser-sync').create();
@@ -16,6 +17,7 @@ let bundler = browserify([
 
 let bundle = () =>  {
   return bundler
+  .transform(babelify, {presets: ["es2015"]})
   .bundle()
   .on('error', gutil.log)
   .pipe(source('bundle.js'))
