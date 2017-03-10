@@ -1,3 +1,119 @@
+(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+function Hero(game, x, y) {
+  // call Phaser.Sprite constructor
+  Phaser.Sprite.call(this, game, x, y, 'hero');
+  this.anchor.set(0.5, 0.5);
+
+  this.animations.add('stop', [0]);
+  this.animations.add('run', [1, 2], 8, true); // 8fps looped
+  this.animations.add('jump', [3]);
+  this.animations.add('fall', [4]);
+
+  this.game.physics.enable(this);
+  this.body.collideWorldBounds = true;
+}
+
+// inherit from Phaser.Sprite
+Hero.prototype = Object.create(Phaser.Sprite.prototype);
+Hero.prototype.constructor = Hero;
+
+Hero.prototype.move = function (direction) {
+  const SPEED = 200;
+  this.body.velocity.x = direction * SPEED;
+  if (this.body.velocity.x < 0) {
+    this.scale.x = -1;
+  }
+  else if (this.body.velocity.x > 0) {
+    this.scale.x = 1;
+  }
+}
+
+Hero.prototype.jump = function () {
+  const JUMP_SPEED = 600;
+  let canJump = this.body.touching.down;
+
+  if (canJump) {
+    this.body.velocity.y = -JUMP_SPEED;
+  }
+
+  return canJump;
+};
+
+Hero.prototype.bounce = function () {
+  const BOUNCE_SPEED = 200;
+  this.body.velocity.y = -BOUNCE_SPEED;
+};
+
+Hero.prototype._getAnimationName = function () {
+  let name = 'stop'; // default animation
+
+  // jumping
+  if (this.body.velocity.y < 0) {
+    name = 'jump';
+  }
+  // falling
+  else if (this.body.velocity.y >= 0 && !this.body.touching.down) {
+    name = 'fall';
+  }
+  else if (this.body.velocity.x !== 0 && this.body.touching.down) {
+    name = 'run';
+  }
+
+  return name;
+};
+
+Hero.prototype.update = function () {
+  // update sprite animation, if it needs changing
+  const animationName = this._getAnimationName();
+  if (this.animations.name !== animationName) {
+    this.animations.play(animationName);
+  }
+};
+
+module.exports = Hero;
+
+},{}],2:[function(require,module,exports){
+function Spider(game, x, y) {
+  Phaser.Sprite.call(this, game, x, y, 'spider');
+
+  this.anchor.set(0.5, 0.5);
+  // animation
+  this.animations.add('crawl', [0, 1, 2], 8, true);
+  this.animations.add('die', [0, 4, 0, 4, 0, 4, 3, 3, 3, 3, 3, 3], 12);
+  this.animations.add('die', [0, 4, 0, 4, 0, 4, 3, 3, 3, 3, 3, 3], 12);
+  this.animations.play('crawl');
+
+  this.game.physics.enable(this);
+  this.body.collideWorldBounds = true;
+  this.body.velocity.x = Spider.SPEED;
+}
+
+Spider.SPEED = 100;
+
+Spider.prototype = Object.create(Phaser.Sprite.prototype);
+Spider.prototype.constructor = Spider;
+
+Spider.prototype.update = function () {
+  // check against walls and reverse direction if necessary
+  if (this.body.touching.right || this.body.blocked.right) {
+    this.body.velocity.x = -Spider.SPEED; // turn left
+  }
+  else if (this.body.touching.left || this.body.blocked.left) {
+    this.body.velocity.x = Spider.SPEED; // turn right
+  }
+};
+
+Spider.prototype.die = function () {
+  this.body.enable = false;
+
+  this.animations.play('die').onComplete.addOnce(function () {
+    this.kill();
+  }, this);
+};
+
+module.exports = Spider;
+
+},{}],3:[function(require,module,exports){
 const Hero = require('./characters/hero');
 const Spider = require('./characters/spider');
 
@@ -244,3 +360,5 @@ window.onload = function () {
   game.state.add('play', PlayState)
   game.state.start('play', true, false, {level: 0});
 };
+
+},{"./characters/hero":1,"./characters/spider":2}]},{},[3]);
