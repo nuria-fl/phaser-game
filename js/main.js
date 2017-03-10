@@ -41,6 +41,7 @@ PlayState.preload = function () {
   this.game.load.image('font:numbers', 'images/numbers.png');
   this.game.load.image('key', 'images/key.png');
 
+  this.game.load.audio('bgm', ['audio/bgm.mp3', 'audio/bgm.wav']);
   this.game.load.audio('sfx:jump', 'audio/jump.wav');
   this.game.load.audio('sfx:coin', 'audio/coin.wav');
   this.game.load.audio('sfx:stomp', 'audio/stomp.wav');
@@ -55,6 +56,10 @@ PlayState.preload = function () {
 };
 
 PlayState.create = function () {
+  // create background music
+  this.music = this.game.add.audio('bgm');
+  this.music.loopFull()
+
   // create sound entities
   this.sfx = {
     key: this.game.add.audio('sfx:key'),
@@ -74,6 +79,10 @@ PlayState.update = function () {
   this._handleInput();
   this.coinFont.text = `x${this.coinPickupCount}`;
   this.keyIcon.frame = this.hasKey ? 1 : 0;
+};
+
+PlayState.shutdown = function () {
+  this.music.stop()
 };
 
 // Playstate functions
