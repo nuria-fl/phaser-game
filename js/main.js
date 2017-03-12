@@ -60,6 +60,8 @@ PlayState.create = function () {
   this.music = this.game.add.audio('bgm');
   this.music.loopFull()
 
+  this.camera.flash('0x000000')
+
   // create sound entities
   this.sfx = {
     key: this.game.add.audio('sfx:key'),
@@ -243,7 +245,10 @@ PlayState._onHeroVsKey = function (hero, key) {
 
 PlayState._onHeroVsDoor = function (hero, door) {
   this.sfx.door.play();
+  this.camera.fade()
   this.game.state.restart(true, false, {level: this.level + 1});
+  // this.camera.onFadeComplete.addOnce(function(){
+  // }, this)
 };
 
 // load
