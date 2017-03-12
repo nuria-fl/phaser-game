@@ -7,6 +7,7 @@ function Hero(game, x, y) {
   this.animations.add('run', [1, 2], 8, true); // 8fps looped
   this.animations.add('jump', [3]);
   this.animations.add('fall', [4]);
+  this.animations.add('die', [5, 6, 5, 6, 5, 6, 5, 6], 12); // 12fps no loop
 
   this.game.physics.enable(this);
   this.body.collideWorldBounds = true;
@@ -29,7 +30,7 @@ Hero.prototype.move = function (direction) {
 
 Hero.prototype.jump = function () {
   const JUMP_SPEED = 600;
-  let canJump = this.body.touching.down;
+  let canJump = this.body.touching.down && this.alive;
 
   if (canJump) {
     this.body.velocity.y = -JUMP_SPEED;
@@ -46,6 +47,9 @@ Hero.prototype.bounce = function () {
 Hero.prototype._getAnimationName = function () {
   let name = 'stop'; // default animation
 
+  if (!this.alive) {
+    name = 'die';
+  }
   // jumping
   if (this.body.velocity.y < 0) {
     name = 'jump';
@@ -67,6 +71,14 @@ Hero.prototype.update = function () {
   if (this.animations.name !== animationName) {
     this.animations.play(animationName);
   }
+};
+
+Hero.prototype.die = function () {
+  this.alive = false;
+  this.body.enable = false;
+  this.animations.play('die').onComplete.addOnce(function () {
+    this.kill()
+  }, this);
 };
 
 module.exports = Hero;

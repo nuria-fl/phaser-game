@@ -232,8 +232,11 @@ PlayState._onHeroVsEnemy = function (hero, enemy) {
     enemy.die();
     this.sfx.stomp.play();
   } else {
+    hero.die();
     this.sfx.stomp.play();
-    this.game.state.restart(true, false, {level: this.level});
+    hero.events.onKilled.addOnce(function () {
+      this.game.state.restart(true, false, {level: this.level});
+    }, this);
   }
 };
 
