@@ -24,7 +24,9 @@ PlayState._loadLevel = function(data) {
   this.enemyWalls = this.game.add.group();
   this.enemyWalls.visible = false;
 
-  data.platforms.forEach(this._spawnPlatform, this); //second param to bind this
+  data.platforms.forEach(this._spawnPlatform, this);
+  data.decoration.forEach(this._spawnDecor, this);
+
   this._spawnCharacters({hero: data.hero, spiders: data.spiders});
   this._spawnDoor(data.door.x, data.door.y);
   this._spawnKey(data.key.x, data.key.y);
@@ -88,6 +90,10 @@ PlayState._spawnDoor = function (x, y) {
   this.game.physics.enable(this.door);
   this.door.body.allowGravity = false;
 };
+
+PlayState._spawnDecor = function (decor) {
+  this.bgDecoration.create(decor.x, decor.y, 'decoration', decor.frame);
+}
 
 PlayState._spawnKey = function (x, y) {
   this.key = this.bgDecoration.create(x, y, 'key');
