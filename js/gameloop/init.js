@@ -1,10 +1,11 @@
 module.exports = function (data) {
-  const LEVEL_COUNT = 2;
-  
+  const LEVEL_COUNT = 3;
+
   this.keys = this.game.input.keyboard.addKeys({
     left: Phaser.KeyCode.LEFT,
     right: Phaser.KeyCode.RIGHT,
-    up: Phaser.KeyCode.UP
+    up: Phaser.KeyCode.UP,
+    action: Phaser.KeyCode.SPACEBAR
   });
   this.keys.up.onDown.add(function () {
     let didJump = this.hero.jump();

@@ -29,6 +29,15 @@ PlayState._loadLevel = function(data) {
 
   this._spawnCharacters({hero: data.hero, spiders: data.spiders});
   this._spawnDoor(data.door.x, data.door.y);
+
+  if(data.doorBoxes){
+    this._spawnPullDoor(data.doorBoxes, data.doorSwitch);
+  }
+
+  if(data.water){
+    this._spawnWater(data.water.x, data.water.y);
+  }
+
   this._spawnKey(data.key.x, data.key.y);
 
   data.coins.forEach(this._spawnCoin, this);
@@ -59,8 +68,18 @@ PlayState._createHud = function () {
 
 PlayState._handleCollisions = function () {
   this.game.physics.arcade.collide(this.hero, this.platforms);
+  this.game.physics.arcade.collide(this.hero, this.pullDoor);
+  this.game.physics.arcade.collide(this.hero, this.water, function(){
+    this.hero.die();
+    this.hero.events.onKilled.addOnce(function () {
+      this.game.state.restart(true, false, {level: this.level});
+    }, this);
+  }, null, this);
+  this.game.physics.arcade.collide(this.platforms, this.water);
+  this.game.physics.arcade.collide(this.pullDoor, this.platforms);
   this.game.physics.arcade.collide(this.spiders, this.platforms);
   this.game.physics.arcade.collide(this.spiders, this.enemyWalls);
+  this.game.physics.arcade.collide(this.spiders, this.pullDoor);
 
   this.game.physics.arcade.overlap(this.hero, this.coins, this._onHeroVsCoin, null, this);
   this.game.physics.arcade.overlap(this.hero, this.spiders, this._onHeroVsEnemy, null, this);
@@ -70,6 +89,7 @@ PlayState._handleCollisions = function () {
     function (hero, door) {
         return this.hasKey && hero.body.touching.down;
     }, this);
+    this.game.physics.arcade.overlap(this.hero, this.doorSwitch, this._onHeroVsSwitch, null, this);
 };
 
 PlayState._handleInput = function () {
@@ -82,6 +102,26 @@ PlayState._handleInput = function () {
   else { // stop
     this.hero.move(0);
   }
+};
+
+PlayState._spawnWater = function (x, y) {
+  this.water = this.bgDecoration.create(x, y, 'water');
+
+  this.game.physics.enable(this.water);
+  this.pullDoor.body.immovable = true;
+  this.pullDoor.body.allowGravity = false;
+};
+
+PlayState._spawnPullDoor = function (door, doorSwitch) {
+  this.pullDoor = this.bgDecoration.create(door.x, door.y, 'boxes');
+  this.game.physics.enable(this.pullDoor);
+  this.pullDoor.body.immovable = true;
+  this.pullDoor.body.allowGravity = false;
+
+  this.doorSwitch = this.bgDecoration.create(doorSwitch.x, doorSwitch.y, 'doorSwitch', 0);
+  this.doorSwitch.animations.add('pull', [1], 1);
+  this.game.physics.enable(this.doorSwitch);
+  this.doorSwitch.body.allowGravity = false;
 };
 
 PlayState._spawnDoor = function (x, y) {
@@ -185,6 +225,17 @@ PlayState._onHeroVsDoor = function (hero, door) {
   this.game.state.restart(true, false, {level: this.level + 1});
   // this.camera.onFadeComplete.addOnce(function(){
   // }, this)
+};
+
+PlayState._onHeroVsSwitch = function (hero, doorSwitch) {
+    this.keys.action.onDown.add(function(){
+      this.sfx.door.play();
+
+      doorSwitch.animations.play('pull')
+      this.pullDoor.kill();
+      // this.game.physics.disable(doorSwitch)
+      // doorSwitch.activated = true;
+    }, this)
 };
 
 // load

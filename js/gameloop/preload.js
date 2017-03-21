@@ -1,6 +1,7 @@
 const preload = function () {
   this.game.load.json('level:0', 'data/level00.json');
   this.game.load.json('level:1', 'data/level01.json');
+  this.game.load.json('level:2', 'data/level02.json');
 
   this.game.load.image('background', 'images/background.png');
   this.game.load.image('ground', 'images/ground.png');
@@ -9,10 +10,15 @@ const preload = function () {
   this.game.load.image('grass:4x1', 'images/grass_4x1.png');
   this.game.load.image('grass:2x1', 'images/grass_2x1.png');
   this.game.load.image('grass:1x1', 'images/grass_1x1.png');
+  this.game.load.image('boxes', 'images/boxes.png');
+  this.game.load.image('cave-top', 'images/cave-top.png');
+  this.game.load.image('cave-wall', 'images/cave-wall.png');
+  this.game.load.image('cave-floor', 'images/cave-floor.png');
   this.game.load.image('invisible-wall', 'images/invisible_wall.png');
   this.game.load.image('icon:coin', 'images/coin_icon.png');
   this.game.load.image('font:numbers', 'images/numbers.png');
   this.game.load.image('key', 'images/key.png');
+  this.game.load.image('water', 'images/water.png');
 
   this.game.load.audio('bgm', ['audio/bgm.mp3', 'audio/bgm.wav']);
   this.game.load.audio('sfx:jump', 'audio/jump.wav');
@@ -25,6 +31,7 @@ const preload = function () {
   this.game.load.spritesheet('coin', 'images/coin_animated.png', 22, 22);
   this.game.load.spritesheet('spider', 'images/spider.png', 42, 32);
   this.game.load.spritesheet('door', 'images/door.png', 42, 66);
+  this.game.load.spritesheet('doorSwitch', 'images/switch.png', 42, 42);
   this.game.load.spritesheet('icon:key', 'images/key_icon.png', 34, 30);
   this.game.load.spritesheet('decoration', 'images/decor.png', 42, 42);
 };
