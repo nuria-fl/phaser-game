@@ -154,12 +154,13 @@ module.exports = function () {
 "use strict";
 
 module.exports = function (data) {
-  var LEVEL_COUNT = 2;
+  var LEVEL_COUNT = 3;
 
   this.keys = this.game.input.keyboard.addKeys({
     left: Phaser.KeyCode.LEFT,
     right: Phaser.KeyCode.RIGHT,
-    up: Phaser.KeyCode.UP
+    up: Phaser.KeyCode.UP,
+    action: Phaser.KeyCode.SPACEBAR
   });
   this.keys.up.onDown.add(function () {
     var didJump = this.hero.jump();
@@ -180,6 +181,7 @@ module.exports = function (data) {
 var preload = function preload() {
   this.game.load.json('level:0', 'data/level00.json');
   this.game.load.json('level:1', 'data/level01.json');
+  this.game.load.json('level:2', 'data/level02.json');
 
   this.game.load.image('background', 'images/background.png');
   this.game.load.image('ground', 'images/ground.png');
@@ -188,10 +190,15 @@ var preload = function preload() {
   this.game.load.image('grass:4x1', 'images/grass_4x1.png');
   this.game.load.image('grass:2x1', 'images/grass_2x1.png');
   this.game.load.image('grass:1x1', 'images/grass_1x1.png');
+  this.game.load.image('boxes', 'images/boxes.png');
+  this.game.load.image('cave-top', 'images/cave-top.png');
+  this.game.load.image('cave-wall', 'images/cave-wall.png');
+  this.game.load.image('cave-floor', 'images/cave-floor.png');
   this.game.load.image('invisible-wall', 'images/invisible_wall.png');
   this.game.load.image('icon:coin', 'images/coin_icon.png');
   this.game.load.image('font:numbers', 'images/numbers.png');
   this.game.load.image('key', 'images/key.png');
+  this.game.load.image('water', 'images/water.png');
 
   this.game.load.audio('bgm', ['audio/bgm.mp3', 'audio/bgm.wav']);
   this.game.load.audio('sfx:jump', 'audio/jump.wav');
@@ -204,7 +211,9 @@ var preload = function preload() {
   this.game.load.spritesheet('coin', 'images/coin_animated.png', 22, 22);
   this.game.load.spritesheet('spider', 'images/spider.png', 42, 32);
   this.game.load.spritesheet('door', 'images/door.png', 42, 66);
+  this.game.load.spritesheet('doorSwitch', 'images/switch.png', 42, 42);
   this.game.load.spritesheet('icon:key', 'images/key_icon.png', 34, 30);
+  this.game.load.spritesheet('decoration', 'images/decor.png', 42, 42);
 };
 
 module.exports = preload;
@@ -255,9 +264,20 @@ PlayState._loadLevel = function (data) {
   this.enemyWalls = this.game.add.group();
   this.enemyWalls.visible = false;
 
-  data.platforms.forEach(this._spawnPlatform, this); //second param to bind this
+  data.platforms.forEach(this._spawnPlatform, this);
+  data.decoration.forEach(this._spawnDecor, this);
+
   this._spawnCharacters({ hero: data.hero, spiders: data.spiders });
   this._spawnDoor(data.door.x, data.door.y);
+
+  if (data.doorBoxes) {
+    this._spawnPullDoor(data.doorBoxes, data.doorSwitch);
+  }
+
+  if (data.water) {
+    this._spawnWater(data.water.x, data.water.y);
+  }
+
   this._spawnKey(data.key.x, data.key.y);
 
   data.coins.forEach(this._spawnCoin, this);
@@ -287,8 +307,18 @@ PlayState._createHud = function () {
 
 PlayState._handleCollisions = function () {
   this.game.physics.arcade.collide(this.hero, this.platforms);
+  this.game.physics.arcade.collide(this.hero, this.pullDoor);
+  this.game.physics.arcade.collide(this.hero, this.water, function () {
+    this.hero.die();
+    this.hero.events.onKilled.addOnce(function () {
+      this.game.state.restart(true, false, { level: this.level });
+    }, this);
+  }, null, this);
+  this.game.physics.arcade.collide(this.platforms, this.water);
+  this.game.physics.arcade.collide(this.pullDoor, this.platforms);
   this.game.physics.arcade.collide(this.spiders, this.platforms);
   this.game.physics.arcade.collide(this.spiders, this.enemyWalls);
+  this.game.physics.arcade.collide(this.spiders, this.pullDoor);
 
   this.game.physics.arcade.overlap(this.hero, this.coins, this._onHeroVsCoin, null, this);
   this.game.physics.arcade.overlap(this.hero, this.spiders, this._onHeroVsEnemy, null, this);
@@ -298,6 +328,7 @@ PlayState._handleCollisions = function () {
   function (hero, door) {
     return this.hasKey && hero.body.touching.down;
   }, this);
+  this.game.physics.arcade.overlap(this.hero, this.doorSwitch, this._onHeroVsSwitch, null, this);
 };
 
 PlayState._handleInput = function () {
@@ -313,11 +344,35 @@ PlayState._handleInput = function () {
   }
 };
 
+PlayState._spawnWater = function (x, y) {
+  this.water = this.bgDecoration.create(x, y, 'water');
+
+  this.game.physics.enable(this.water);
+  this.pullDoor.body.immovable = true;
+  this.pullDoor.body.allowGravity = false;
+};
+
+PlayState._spawnPullDoor = function (door, doorSwitch) {
+  this.pullDoor = this.bgDecoration.create(door.x, door.y, 'boxes');
+  this.game.physics.enable(this.pullDoor);
+  this.pullDoor.body.immovable = true;
+  this.pullDoor.body.allowGravity = false;
+
+  this.doorSwitch = this.bgDecoration.create(doorSwitch.x, doorSwitch.y, 'doorSwitch', 0);
+  this.doorSwitch.animations.add('pull', [1], 1);
+  this.game.physics.enable(this.doorSwitch);
+  this.doorSwitch.body.allowGravity = false;
+};
+
 PlayState._spawnDoor = function (x, y) {
   this.door = this.bgDecoration.create(x, y, 'door');
   this.door.anchor.setTo(0.5, 1);
   this.game.physics.enable(this.door);
   this.door.body.allowGravity = false;
+};
+
+PlayState._spawnDecor = function (decor) {
+  this.bgDecoration.create(decor.x, decor.y, 'decoration', decor.frame);
 };
 
 PlayState._spawnKey = function (x, y) {
@@ -409,12 +464,23 @@ PlayState._onHeroVsDoor = function (hero, door) {
   // }, this)
 };
 
+PlayState._onHeroVsSwitch = function (hero, doorSwitch) {
+  this.keys.action.onDown.add(function () {
+    this.sfx.door.play();
+
+    doorSwitch.animations.play('pull');
+    this.pullDoor.kill();
+    // this.game.physics.disable(doorSwitch)
+    // doorSwitch.activated = true;
+  }, this);
+};
+
 // load
 
 window.onload = function () {
   var game = new Phaser.Game(960, 600, Phaser.AUTO, 'game');
   game.state.add('play', PlayState);
-  game.state.start('play', true, false, { level: 0 });
+  game.state.start('play', true, false, { level: 2 });
 };
 
 },{"./characters/hero":1,"./characters/spider":2,"./gameloop/create":3,"./gameloop/init":4,"./gameloop/preload":5,"./gameloop/shutdown":6,"./gameloop/update":7}]},{},[8]);
